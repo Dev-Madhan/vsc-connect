@@ -4,5 +4,415 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// ENUMS
+// ==========================================
+enum RoleEnum {
+  SUPER_ADMIN
+  ADMIN
+  MODERATOR
+  USER
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum Year {
+  FIRST
+  SECOND
+  THIRD
+  FOURTH
+  ALUMNI
+}
+
+enum NotificationType {
+  SYSTEM
+  EVENT
+  GENERAL
+}
+
+enum DocumentType {
+  OD
+  CERTIFICATE
+}
+
+enum MemberStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+// ==========================================
+// AUTHENTICATION (Better Auth standard)
+// ==========================================
+
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+  createdBy     String?
+  updatedBy     String?
+
+  roleId String?
+  role   Role?   @relation(fields: [roleId], references: [id])
+
+  memberId String? @unique
+  member   Member? @relation(fields: [memberId], references: [id])
+
+  sessions Session[]
+  accounts Account[]
+
+  @@index([roleId])
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Role {
+  id          String    @id @default(uuid())
+  name        RoleEnum  @default(USER)
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  createdBy   String?
+  updatedBy   String?
+
+  users User[]
+}
+
+// ==========================================
+// CORE ENTITIES
+// ==========================================
+
+model Club {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  slug        String    @unique
+  logoUrl     String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  createdBy   String?
+  updatedBy   String?
+
+  subClubs SubClub[]
+  events   Event[]
+  projects Project[]
+}
+
+model SubClub {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  slug        String    @unique
+  clubId      String
+  club        Club      @relation(fields: [clubId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  createdBy   String?
+  updatedBy   String?
+
+  members Member[]
+}
+
+model Member {
+  id             String       @id @default(uuid())
+  registerNumber String       @unique
+  membershipId   String       @unique
+  firstName      String
+  lastName       String
+  email          String       @unique
+  phoneNumber    String?
+  gender         Gender
+  year           Year
+  status         MemberStatus @default(ACTIVE)
+
+  subClubId String?
+  subClub   SubClub? @relation(fields: [subClubId], references: [id])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+
+  user                User?
+  eventParticipations EventParticipant[]
+  membershipCards     MembershipCard[]
+  odDocuments         ODDocument[]
+
+  @@index([subClubId])
+  @@index([year])
+}
+
+// ==========================================
+// EVENTS & CONTENT
+// ==========================================
+
+model Event {
+  id          String      @id @default(uuid())
+  title       String
+  slug        String      @unique
+  description String
+  eventDate   DateTime
+  location    String?
+  status      EventStatus @default(DRAFT)
+  imageUrl    String?
+
+  clubId String?
+  club   Club?   @relation(fields: [clubId], references: [id])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+
+  participants EventParticipant[]
+
+  @@index([eventDate])
+}
+
+model EventParticipant {
+  id       String  @id @default(uuid())
+  eventId  String
+  event    Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  memberId String
+  member   Member  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  attended Boolean @default(false)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+
+  @@unique([eventId, memberId])
+}
+
+model Gallery {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  createdBy   String?
+  updatedBy   String?
+
+  images GalleryImage[]
+}
+
+model GalleryImage {
+  id           String  @id @default(uuid())
+  galleryId    String
+  gallery      Gallery @relation(fields: [galleryId], references: [id], onDelete: Cascade)
+  imageUrl     String
+  thumbnailUrl String?
+  caption      String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+}
+
+model News {
+  id          String    @id @default(uuid())
+  title       String
+  slug        String    @unique
+  content     String
+  imageUrl    String?
+  publishedAt DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+}
+
+model Blog {
+  id          String    @id @default(uuid())
+  title       String
+  slug        String    @unique
+  content     String
+  authorId    String?
+  imageUrl    String?
+  publishedAt DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+}
+
+model Project {
+  id          String  @id @default(uuid())
+  title       String
+  slug        String  @unique
+  description String
+  repoUrl     String?
+  liveUrl     String?
+  imageUrl    String?
+
+  clubId String?
+  club   Club?   @relation(fields: [clubId], references: [id])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+}
+
+model Sponsor {
+  id         String  @id @default(uuid())
+  name       String
+  logoUrl    String
+  websiteUrl String?
+  tier       String? // Could be an enum
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+}
+
+// ==========================================
+// DOCUMENTS
+// ==========================================
+
+model MembershipCard {
+  id       String   @id @default(uuid())
+  memberId String
+  member   Member   @relation(fields: [memberId], references: [id])
+  pdfUrl   String
+  issuedAt DateTime @default(now())
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+}
+
+model ODDocument {
+  id       String       @id @default(uuid())
+  memberId String
+  member   Member       @relation(fields: [memberId], references: [id])
+  type     DocumentType @default(OD)
+  pdfUrl   String
+  date     DateTime
+  reason   String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+}
+
+// ==========================================
+// SYSTEM
+// ==========================================
+
+model Notification {
+  id      String           @id @default(uuid())
+  userId  String? // If targeted
+  title   String
+  message String
+  type    NotificationType @default(GENERAL)
+  isRead  Boolean          @default(false)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+}
+
+model AuditLog {
+  id        String  @id @default(uuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  details   String? // Used instead of Json since SQLite doesn't have Json type by default, but this is Postgres so Json is fine. Wait, let me check the provider. It's postgresql. I'll stick to String or Json. Actually Json is valid in Postgres.
+  ipAddress String?
+
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+}
+
+model Setting {
+  id          String  @id @default(uuid())
+  key         String  @unique
+  value       String
+  description String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
 }
