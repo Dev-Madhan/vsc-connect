@@ -10,7 +10,7 @@ const protectedRoutes = [
   '/settings'
 ];
 
-export function middleware(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   
   // Check if it's a protected route
