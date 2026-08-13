@@ -120,7 +120,10 @@ Install dependencies in stages and verify the project builds after each stage.
 - Avoid `any`.
 - Keep business logic out of components.
 - Prefer Server Components unless client-side interactivity is required.
-- Validate all external input.
+- Validate all external input (using Zod).
+- Use path aliases (e.g., `@/components`, `@/lib`) instead of relative paths.
+- Define Server Actions in the `actions/` directory and ensure they start with the `"use server"` directive.
+- Validate Environment Variables on startup to prevent missing secrets from causing runtime crashes.
 
 ---
 
