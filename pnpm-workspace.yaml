@@ -1,0 +1,6 @@
+allowBuilds:
+  '@prisma/engines': true
+  '@sentry/cli': true
+  esbuild: true
+  prisma: true
+  unrs-resolver: true
