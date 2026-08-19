@@ -128,3 +128,40 @@
     @apply font-sans;
   }
 }
+
+/* ── Login page custom animations ── */
+@keyframes lp-drift {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(30px, 20px) scale(1.06); }
+}
+
+@keyframes lp-pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.45); opacity: 0.7; }
+}
+
+@keyframes lp-shimmer {
+  0%   { left: -100%; }
+  60%  { left: 160%; }
+  100% { left: 160%; }
+}
+
+@keyframes lp-slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes lp-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-lp-drift      { animation: lp-drift 12s ease-in-out infinite alternate; }
+.animate-lp-pulse-dot  { animation: lp-pulse-dot 2s ease-in-out infinite; }
+.animate-lp-shimmer    { animation: lp-shimmer 3s ease-in-out infinite; }
+.animate-lp-slide-up   { animation: lp-slide-up 0.5s cubic-bezier(0.22,1,0.36,1) forwards; }
+.animate-lp-fade-in    { animation: lp-fade-in 0.22s ease forwards; }
+.animate-spin-slow     { animation: spin 0.75s linear infinite; }
+
+.font-space-grotesk { font-family: var(--font-space-grotesk), sans-serif; }
+.font-dm-sans       { font-family: var(--font-dm-sans), sans-serif; }
