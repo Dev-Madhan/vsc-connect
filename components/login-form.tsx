@@ -12,7 +12,7 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"div">) {
   const [showPassword, setShowPassword] = useState(false);
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [activeSlide, setActiveSlide] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -66,7 +66,7 @@ export function LoginForm({
     setError(null);
     setIsLoading(true);
     try {
-      const result = await authClient.signIn.username({ username, password });
+      const result = await authClient.signIn.email({ email, password });
       if (result.error) {
         const msg = result.error.message ?? "";
         if (
@@ -74,12 +74,12 @@ export function LoginForm({
           msg.toLowerCase().includes("credentials") ||
           msg.toLowerCase().includes("password")
         ) {
-          setError("Invalid username or password. Please try again.");
+          setError("Invalid email or password. Please try again.");
         } else if (
           msg.toLowerCase().includes("not found") ||
           msg.toLowerCase().includes("user")
         ) {
-          setError("No account found with that username.");
+          setError("No account found with that email.");
         } else {
           setError(msg || "Something went wrong. Please try again.");
         }
@@ -228,15 +228,15 @@ export function LoginForm({
                 </div>
               )}
 
-              {/* Username */}
+              {/* Email */}
               <div className="relative mb-3.5">
                 <input
-                  id="username"
-                  type="text"
-                  placeholder="Username"
-                  value={username}
-                  onChange={(e) => { setUsername(e.target.value); setError(null); }}
-                  autoComplete="username"
+                  id="email"
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); setError(null); }}
+                  autoComplete="email"
                   autoCapitalize="none"
                   spellCheck={false}
                   required
