@@ -70,7 +70,7 @@ export function Header() {
 							size="sm" 
 							render={<Link href="/login" />}
 							nativeButton={false}
-							className="hidden md:inline-flex h-8 rounded-md px-6 text-[11px] font-bold uppercase tracking-[0.15em] transition-colors"
+							className="hidden md:inline-flex h-9 rounded-md px-6 text-[11px] font-bold uppercase tracking-[0.15em] border border-border transition-colors shadow-sm bg-background hover:bg-accent hover:text-accent-foreground"
 						>
 							Login
 						</Button>
