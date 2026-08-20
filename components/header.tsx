@@ -8,16 +8,12 @@ import Link from "next/link";
 
 export const navLinks = [
 	{
-		label: "About Us",
+		label: "About",
 		href: "#about",
 	},
 	{
 		label: "Events",
 		href: "#events",
-	},
-	{
-		label: "Projects",
-		href: "#projects",
 	},
 	{
 		label: "News",
@@ -39,8 +35,23 @@ export function Header() {
 				)}
 			>
 				<nav className="flex h-14 w-full items-center justify-between px-6">
-					{/* Left: Logo */}
-					<div className="flex w-32 shrink-0 items-center">
+					{/* Left: Links */}
+					<div className="flex flex-1 items-center">
+						<div className="hidden items-center gap-2 md:flex">
+							{navLinks.map((link) => (
+								<a 
+									key={link.label} 
+									href={link.href}
+									className="whitespace-nowrap rounded-full px-4 py-1.5 text-[13px] font-medium text-muted-foreground/80 transition-all duration-300 ease-out hover:bg-accent/60 hover:text-foreground hover:shadow-[0_0_10px_rgba(0,0,0,0.03)] dark:hover:shadow-[0_0_10px_rgba(255,255,255,0.03)]"
+								>
+									{link.label}
+								</a>
+							))}
+						</div>
+					</div>
+
+					{/* Center: Logo */}
+					<div className="flex shrink-0 items-center justify-center">
 						<a
 							className="transition-opacity hover:opacity-80"
 							href="#"
@@ -49,21 +60,8 @@ export function Header() {
 						</a>
 					</div>
 
-					{/* Center: Links */}
-					<div className="hidden flex-1 items-center justify-center gap-2 md:flex">
-						{navLinks.map((link) => (
-							<a 
-								key={link.label} 
-								href={link.href}
-								className="rounded-full px-4 py-1.5 text-[13px] font-medium text-muted-foreground/80 transition-all duration-300 ease-out hover:bg-accent/60 hover:text-foreground hover:shadow-[0_0_10px_rgba(0,0,0,0.03)] dark:hover:shadow-[0_0_10px_rgba(255,255,255,0.03)]"
-							>
-								{link.label}
-							</a>
-						))}
-					</div>
-
 					{/* Right: Actions */}
-					<div className="flex w-32 shrink-0 items-center justify-end gap-5">
+					<div className="flex flex-1 items-center justify-end gap-5">
 						<div className="hidden h-5 w-px bg-border/60 md:block" />
 						<Button 
 							variant="outline"
