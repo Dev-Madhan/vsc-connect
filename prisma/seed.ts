@@ -3,22 +3,18 @@ import { prisma } from "../lib/prisma";
 import { auth } from "../lib/auth";
 
 // ---------------------------------------------------------------------------
-// Pre-approved users
-// Each entry maps to exactly one allowed login:
-//   - credential login via username + password
-//   - Google OAuth ONLY if the google_email below is the signing-in account
+// Privileged users — credential (username + password) login only.
+// Google SSO is temporarily disabled; these are the only active accounts.
 // ---------------------------------------------------------------------------
-const PRIVILEGED_USERS = [
+
+const ADMIN_USERS = [
   {
     name: "Super Administrator",
     username: "admin@vsc",
     password: "admin@vsc2026",
-    // Internal system email (used as the auth identifier for credential login)
     email: "admin@vistaraconnect.internal",
-    // The real Google account allowed to sign in via OAuth
     googleEmail: "mg5661639@gmail.com",
     role: RoleEnum.SUPER_ADMIN,
-    emailVerified: true,
   },
   {
     name: "President",
@@ -27,7 +23,6 @@ const PRIVILEGED_USERS = [
     email: "president@vistaraconnect.internal",
     googleEmail: "mukeshveralevel@gmail.com",
     role: RoleEnum.ADMIN,
-    emailVerified: true,
   },
   {
     name: "Vice President",
@@ -36,149 +31,281 @@ const PRIVILEGED_USERS = [
     email: "vicepresident@vistaraconnect.internal",
     googleEmail: "mukeshg.csbs24@veltechmultitech.org",
     role: RoleEnum.ADMIN,
-    emailVerified: true,
   },
 ] as const;
 
+// Secretary for each sub-club.
+// username pattern : <slug>sec@vsc
+// password pattern : <slug>@vsc2026
+const SECRETARY_USERS: {
+  name: string;
+  username: string;
+  password: string;
+  email: string;
+  subClubSlug: string;
+}[] = [
+  {
+    name: "Dance Secretary",
+    username: "dancesec@vsc",
+    password: "dance@vsc2026",
+    email: "dance.secretary@vistaraconnect.internal",
+    subClubSlug: "dance",
+  },
+  {
+    name: "Music Secretary",
+    username: "musicsec@vsc",
+    password: "music@vsc2026",
+    email: "music.secretary@vistaraconnect.internal",
+    subClubSlug: "music",
+  },
+  {
+    name: "Media Secretary",
+    username: "mediasec@vsc",
+    password: "media@vsc2026",
+    email: "media.secretary@vistaraconnect.internal",
+    subClubSlug: "media",
+  },
+  {
+    name: "Tech Secretary",
+    username: "techsec@vsc",
+    password: "tech@vsc2026",
+    email: "tech.secretary@vistaraconnect.internal",
+    subClubSlug: "tech",
+  },
+  {
+    name: "Compering Secretary",
+    username: "comperingsec@vsc",
+    password: "compering@vsc2026",
+    email: "compering.secretary@vistaraconnect.internal",
+    subClubSlug: "compering",
+  },
+  {
+    name: "Fashion Secretary",
+    username: "fashionsec@vsc",
+    password: "fashion@vsc2026",
+    email: "fashion.secretary@vistaraconnect.internal",
+    subClubSlug: "fashion",
+  },
+  {
+    name: "Art Secretary",
+    username: "artsec@vsc",
+    password: "art@vsc2026",
+    email: "art.secretary@vistaraconnect.internal",
+    subClubSlug: "art",
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Helper — create a credential user + hashed account record if not present
+// ---------------------------------------------------------------------------
+async function upsertCredentialUser({
+  name,
+  username,
+  password,
+  email,
+  roleId,
+}: {
+  name: string;
+  username: string;
+  password: string;
+  email: string;
+  roleId: string;
+}): Promise<string> {
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) {
+    console.log(`  ⏭  Already exists: ${username}`);
+    return existing.id;
+  }
+
+  const ctx = await auth.$context;
+  const hashed = await ctx.password.hash(password);
+
+  const user = await prisma.user.create({
+    data: {
+      name,
+      email,
+      username,
+      displayUsername: username,
+      emailVerified: true,
+      roleId,
+    },
+  });
+
+  await prisma.account.create({
+    data: {
+      id: crypto.randomUUID(),
+      accountId: username,   // Better Auth username plugin uses this as the lookup key
+      providerId: "credential",
+      userId: user.id,
+      password: hashed,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  });
+
+  console.log(`  ✅ Created: ${username}`);
+  return user.id;
+}
+
+// ---------------------------------------------------------------------------
+// Main seed
+// ---------------------------------------------------------------------------
 async function main() {
-  console.log("Seeding database...");
+  console.log("Seeding database…\n");
 
   // ── 1. Settings ────────────────────────────────────────────────────────────
-  const settingsToCreate = [
-    { key: "SITE_NAME", value: "Vistara Connect", description: "The name of the application" },
-    { key: "ALLOW_REGISTRATION", value: "false", description: "Public registration is disabled — admin-invite only" },
-  ];
-
-  for (const s of settingsToCreate) {
-    await prisma.setting.upsert({
-      where: { key: s.key },
-      update: {},
-      create: s,
-    });
+  for (const s of [
+    { key: "SITE_NAME",           value: "Vistara Connect",  description: "Application name" },
+    { key: "ALLOW_REGISTRATION",  value: "false",            description: "Public registration disabled — invite only" },
+  ]) {
+    await prisma.setting.upsert({ where: { key: s.key }, update: {}, create: s });
   }
   console.log("✅ Settings seeded");
 
   // ── 2. Roles ───────────────────────────────────────────────────────────────
-  const roleNames = [RoleEnum.SUPER_ADMIN, RoleEnum.ADMIN, RoleEnum.MODERATOR, RoleEnum.USER];
   const roleMap: Record<string, string> = {};
-
-  for (const roleName of roleNames) {
-    let role = await prisma.role.findFirst({ where: { name: roleName } });
-    if (!role) {
-      role = await prisma.role.create({
-        data: { name: roleName, description: `${roleName} role` },
-      });
-    }
-    roleMap[roleName] = role.id;
+  for (const name of [RoleEnum.SUPER_ADMIN, RoleEnum.ADMIN, RoleEnum.MODERATOR, RoleEnum.USER]) {
+    let role = await prisma.role.findFirst({ where: { name } });
+    if (!role) role = await prisma.role.create({ data: { name, description: `${name} role` } });
+    roleMap[name] = role.id;
   }
   console.log("✅ Roles seeded");
 
-  // ── 3. Club & SubClub ──────────────────────────────────────────────────────
+  // ── 3. Club & SubClubs ─────────────────────────────────────────────────────
   const club = await prisma.club.upsert({
-    where: { slug: "vistara" },
+    where:  { slug: "vistara" },
     update: {},
     create: { name: "Vistara", slug: "vistara", description: "The main club" },
   });
 
-  await prisma.subClub.upsert({
-    where: { slug: "development" },
-    update: {},
-    create: {
-      name: "Development",
-      slug: "development",
-      clubId: club.id,
-      description: "Software Development Team",
-    },
-  });
-  console.log("✅ Club & SubClub seeded");
+  const SUB_CLUBS = [
+    { name: "Dance",     slug: "dance",     description: "Dance sub-club" },
+    { name: "Music",     slug: "music",     description: "Music sub-club" },
+    { name: "Media",     slug: "media",     description: "Media & Content sub-club" },
+    { name: "Tech",      slug: "tech",      description: "Technology & Development sub-club" },
+    { name: "Compering", slug: "compering", description: "Compering & Anchoring sub-club" },
+    { name: "Fashion",   slug: "fashion",   description: "Fashion sub-club" },
+    { name: "Art",       slug: "art",       description: "Art & Design sub-club" },
+  ];
 
-  // ── 4. Privileged users (credential accounts) ─────────────────────────────
-  //
-  // We create the credential (username/password) account using Better Auth's
-  // ctx so passwords are hashed consistently with Better Auth's algorithm.
-  // The google_email is stored as a *separate* User row whose email exactly
-  // matches the Gmail address — that is the account Better Auth creates when
-  // the Google OAuth flow completes.
-  //
-  for (const u of PRIVILEGED_USERS) {
+  const subClubMap: Record<string, string> = {}; // slug → id
+  for (const sc of SUB_CLUBS) {
+    const row = await prisma.subClub.upsert({
+      where:  { slug: sc.slug },
+      update: { name: sc.name, description: sc.description },
+      create: { ...sc, clubId: club.id },
+    });
+    subClubMap[sc.slug] = row.id;
+  }
+  console.log("✅ Sub-clubs seeded: Dance, Music, Media, Tech, Compering, Fashion, Art");
+
+  // ── 4. Admin / privileged users ────────────────────────────────────────────
+  console.log("\n── Admin accounts ──");
+  for (const u of ADMIN_USERS) {
     const roleId = roleMap[u.role];
+    await upsertCredentialUser({ ...u, roleId });
 
-    // --- Credential user (username + password login) ---
-    const existingCredUser = await prisma.user.findUnique({
-      where: { email: u.email },
-    });
-
-    if (!existingCredUser) {
-      // Use Better Auth's internal ctx to hash the password properly
-      const ctx = await auth.$context;
-      const hashed = await ctx.password.hash(u.password);
-
-      const credUser = await prisma.user.create({
-        data: {
-          name: u.name,
-          email: u.email,
-          username: u.username,
-          displayUsername: u.username,
-          emailVerified: u.emailVerified,
-          roleId,
-        },
-      });
-
-      // Create the credential Account record Better Auth expects.
-      // accountId MUST be the username — that's how the username plugin looks it up.
-      await prisma.account.create({
-        data: {
-          id: crypto.randomUUID(),
-          accountId: u.username,   // ← must match username, not userId
-          providerId: "credential",
-          userId: credUser.id,
-          password: hashed,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      });
-
-      console.log(`  ✅ Credential user created: ${u.username}`);
-    } else {
-      console.log(`  ⏭  Credential user already exists: ${u.username}`);
-    }
-
-    // --- Google allowlist user (pre-seeded so OAuth callback finds them) ---
-    const existingGoogleUser = await prisma.user.findUnique({
-      where: { email: u.googleEmail },
-    });
-
-    if (!existingGoogleUser) {
+    // Keep Google allowlist row so OAuth can still be re-enabled later
+    const existingGoogle = await prisma.user.findUnique({ where: { email: u.googleEmail } });
+    if (!existingGoogle) {
       await prisma.user.create({
-        data: {
-          name: u.name,
-          email: u.googleEmail,
-          emailVerified: true,
-          roleId,
-        },
+        data: { name: u.name, email: u.googleEmail, emailVerified: true, roleId },
       });
-      console.log(`  ✅ Google-allowlist user created: ${u.googleEmail}`);
-    } else {
-      // Make sure the role is set in case it was created without one
-      if (!existingGoogleUser.roleId) {
-        await prisma.user.update({
-          where: { id: existingGoogleUser.id },
-          data: { roleId },
-        });
-      }
-      console.log(`  ⏭  Google-allowlist user already exists: ${u.googleEmail}`);
+    } else if (!existingGoogle.roleId) {
+      await prisma.user.update({ where: { id: existingGoogle.id }, data: { roleId } });
     }
   }
 
-  console.log("\n✅ All privileged users seeded");
-  console.log("\nDatabase seeding completed successfully.");
+  // ── 5. Secretary accounts (one per sub-club) ───────────────────────────────
+  console.log("\n── Secretary accounts ──");
+  const moderatorRoleId = roleMap[RoleEnum.MODERATOR];
+
+  for (const sec of SECRETARY_USERS) {
+    const subClubId = subClubMap[sec.subClubSlug];
+    if (!subClubId) {
+      console.warn(`  ⚠️  Sub-club not found for slug: ${sec.subClubSlug} — skipping`);
+      continue;
+    }
+
+    const userId = await upsertCredentialUser({
+      name:     sec.name,
+      username: sec.username,
+      password: sec.password,
+      email:    sec.email,
+      roleId:   moderatorRoleId,
+    });
+
+    // Ensure secretary has a Member row linked to their sub-club so
+    // the dashboard can resolve subClub → name and scope their data.
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { member: true },
+    });
+
+    if (!user?.member) {
+      // Generate a unique membership ID
+      const year = new Date().getFullYear();
+      let membershipId = `VSC-${year}-${String(Math.floor(1000 + Math.random() * 9000))}`;
+      // Collision guard
+      while (await prisma.member.findUnique({ where: { membershipId } })) {
+        membershipId = `VSC-${year}-${String(Math.floor(1000 + Math.random() * 9000))}`;
+      }
+
+      const slug = sec.subClubSlug.toUpperCase().slice(0, 3);
+      const member = await prisma.member.create({
+        data: {
+          firstName:      sec.name.split(" ")[0],
+          lastName:       "Secretary",
+          email:          sec.email,
+          registerNumber: `SEC-${slug}-001`,
+          vmNumber:       `VM-SEC-${slug}-001`,
+          department:     "Club Administration",
+          gender:         "OTHER",
+          year:           "ALUMNI",
+          membershipId,
+          subClubId,
+        },
+      });
+
+      await prisma.user.update({
+        where: { id: userId },
+        data:  { memberId: member.id },
+      });
+
+      console.log(`     ↳ Member record created for ${sec.name} (${subClubId})`);
+    } else {
+      // Make sure existing member is linked to correct sub-club
+      if (user.member.subClubId !== subClubId) {
+        await prisma.member.update({
+          where: { id: user.member.id },
+          data:  { subClubId },
+        });
+        console.log(`     ↳ Sub-club updated for ${sec.name}`);
+      }
+    }
+  }
+
+  // ── Done ───────────────────────────────────────────────────────────────────
+  console.log("\n✅ Seed complete.\n");
+  console.log("═══════════════════════════════════════════════════════");
+  console.log("  LOGIN CREDENTIALS");
+  console.log("═══════════════════════════════════════════════════════");
+  console.log("  ROLE          USERNAME              PASSWORD");
+  console.log("───────────────────────────────────────────────────────");
+  console.log("  Super Admin   admin@vsc             admin@vsc2026");
+  console.log("  President     president@vsc         president@vsc1999");
+  console.log("  Vice Pres.    vicepresident@vsc     vicepresident@vsc1999");
+  console.log("───────────────────────────────────────────────────────");
+  console.log("  Dance Sec.    dancesec@vsc          dance@vsc2026");
+  console.log("  Music Sec.    musicsec@vsc          music@vsc2026");
+  console.log("  Media Sec.    mediasec@vsc          media@vsc2026");
+  console.log("  Tech Sec.     techsec@vsc           tech@vsc2026");
+  console.log("  Compering     comperingsec@vsc      compering@vsc2026");
+  console.log("  Fashion Sec.  fashionsec@vsc        fashion@vsc2026");
+  console.log("  Art Sec.      artsec@vsc            art@vsc2026");
+  console.log("═══════════════════════════════════════════════════════");
 }
 
 main()
-  .catch((e) => {
-    console.error("Error during seeding:", e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .catch((e) => { console.error("Seed error:", e); process.exit(1); })
+  .finally(() => prisma.$disconnect());

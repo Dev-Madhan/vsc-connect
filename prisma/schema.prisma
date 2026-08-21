@@ -176,11 +176,13 @@ model SubClub {
 model Member {
   id             String       @id @default(uuid())
   registerNumber String       @unique
+  vmNumber       String       @unique
   membershipId   String       @unique
   firstName      String
   lastName       String
   email          String       @unique
   phoneNumber    String?
+  department     String
   gender         Gender
   year           Year
   status         MemberStatus @default(ACTIVE)

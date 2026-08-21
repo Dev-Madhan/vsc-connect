@@ -1,23 +1,36 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Eye, EyeOff, ArrowLeft, Loader2, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
 
+// Human-readable messages for server-side error codes passed via ?error= query param
+const SERVER_ERROR_MESSAGES: Record<string, string> = {
+  unauthorized:
+    "Your account does not have dashboard access. Only authorised club members may sign in.",
+};
+
+interface LoginFormProps extends React.ComponentProps<"div"> {
+  /** Error code from the server (e.g. "unauthorized") */
+  error?: string;
+}
+
 export function LoginForm({
   className,
+  error: serverError,
   ...props
-}: React.ComponentProps<"div">) {
+}: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [activeSlide, setActiveSlide] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    serverError ? (SERVER_ERROR_MESSAGES[serverError] ?? "An error occurred. Please try again.") : null
+  );
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
@@ -46,20 +59,6 @@ export function LoginForm({
     }, 4500);
     return () => clearInterval(timer);
   }, [slides.length]);
-
-  const handleGoogleSignIn = async () => {
-    setError(null);
-    setIsGoogleLoading(true);
-    try {
-      await authClient.signIn.social({
-        provider: "google",
-        callbackURL: "/dashboard",
-      });
-    } catch {
-      setError("Google sign-in failed. Please try again.");
-      setIsGoogleLoading(false);
-    }
-  };
 
   const handleCredentialSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,29 +94,14 @@ export function LoginForm({
   };
 
   return (
-    <div className={cn("w-full h-full", className)} {...props}>
+    <div className={cn("w-full h-full", className)}>
       {/* ── Page wrapper ── */}
       <div className="font-dm-sans relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-gradient-to-br from-[#f0f4ff] via-[#faf5ff] to-[#f0fdf4] p-6">
-
-        {/* Blobs */}
-        <div
-          className="animate-lp-drift pointer-events-none fixed -left-36 -top-36 h-[520px] w-[520px] rounded-full opacity-35 blur-[80px] [animation-delay:0s]"
-          style={{ background: "radial-gradient(circle, #c4b5fd 0%, #818cf8 100%)" }}
-        />
-        <div
-          className="animate-lp-drift pointer-events-none fixed -bottom-32 -right-32 h-[420px] w-[420px] rounded-full opacity-35 blur-[80px] [animation-delay:-4s]"
-          style={{ background: "radial-gradient(circle, #a5f3fc 0%, #38bdf8 100%)" }}
-        />
-        <div
-          className="animate-lp-drift pointer-events-none fixed left-[60%] top-[60%] h-[300px] w-[300px] rounded-full opacity-35 blur-[80px] [animation-delay:-8s]"
-          style={{ background: "radial-gradient(circle, #bbf7d0 0%, #34d399 100%)" }}
-        />
 
         {/* Card */}
         <div
           className={cn(
             "relative z-10 flex h-[90vh] min-h-[580px] max-h-[700px] w-full max-w-[980px] overflow-hidden rounded-[28px] border border-white/95 bg-white/88 backdrop-blur-xl",
-            "shadow-[0_4px_6px_rgba(124,58,237,0.04),0_12px_40px_rgba(124,58,237,0.1),0_40px_80px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,1)]",
             "transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
             mounted ? "translate-y-0 scale-100 opacity-100" : "translate-y-6 scale-[0.98] opacity-0"
           )}
@@ -157,15 +141,6 @@ export function LoginForm({
               <span className="animate-lp-pulse-dot h-2 w-2 rounded-full bg-violet-400 shadow-[0_0_8px_#a78bfa]" />
               Vistara Connect
             </div>
-
-            {/* Back button */}
-            <Link
-              href="/"
-              className="font-dm-sans absolute right-5 top-5 flex items-center gap-1.5 rounded-full border border-white/28 bg-white/18 px-4 py-2 text-[13px] font-medium text-white backdrop-blur-md transition-[background,transform] duration-200 hover:-translate-x-0.5 hover:bg-white/28"
-            >
-              <ArrowLeft size={13} />
-              Back
-            </Link>
 
             {/* Captions */}
             {slides.map((slide, i) => (
@@ -302,7 +277,8 @@ export function LoginForm({
               </button>
             </form>
 
-            {/* Divider */}
+            {/* Divider + Google button — temporarily disabled */}
+            {/* 
             <div className="animate-lp-slide-up mb-4 flex items-center gap-3.5 opacity-0 [animation-delay:0.36s]">
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
               <span className="text-[12.5px] font-medium whitespace-nowrap text-gray-400">
@@ -311,7 +287,6 @@ export function LoginForm({
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
             </div>
 
-            {/* Google button */}
             <button
               type="button"
               onClick={handleGoogleSignIn}
@@ -330,6 +305,7 @@ export function LoginForm({
               )}
               Continue with Google
             </button>
+            */}
           </div>
         </div>
       </div>

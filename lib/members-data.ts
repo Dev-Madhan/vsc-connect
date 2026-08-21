@@ -1,0 +1,221 @@
+// Mock member data matching the Prisma Member model shape
+// Replace with real service calls once the DB is wired up
+
+export type MemberStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED";
+export type Gender = "MALE" | "FEMALE" | "OTHER";
+export type Year = "FIRST" | "SECOND" | "THIRD" | "FOURTH" | "ALUMNI";
+
+export interface MockMember {
+  id: string;
+  membershipId: string;
+  registerNumber: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string | null;
+  gender: Gender;
+  year: Year;
+  status: MemberStatus;
+  subClub: string | null;
+  avatarUrl?: string;
+  createdAt: string;
+}
+
+export const YEAR_LABELS: Record<Year, string> = {
+  FIRST: "1st Year",
+  SECOND: "2nd Year",
+  THIRD: "3rd Year",
+  FOURTH: "4th Year",
+  ALUMNI: "Alumni",
+};
+
+export const SUB_CLUBS = [
+  "Design & Creative",
+  "Tech & Dev",
+  "Media & Content",
+  "Events & Operations",
+  "Research & Innovation",
+];
+
+export const MOCK_MEMBERS: MockMember[] = [
+  {
+    id: "mem-001",
+    membershipId: "VSC-2026-0001",
+    registerNumber: "22CS001",
+    firstName: "Arjun",
+    lastName: "Mehta",
+    email: "arjun.mehta@vistara.io",
+    phoneNumber: "+91 98400 11001",
+    gender: "MALE",
+    year: "THIRD",
+    status: "ACTIVE",
+    subClub: "Tech & Dev",
+    avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&auto=format&fit=crop&q=80",
+    createdAt: "2026-01-15",
+  },
+  {
+    id: "mem-002",
+    membershipId: "VSC-2026-0002",
+    registerNumber: "22CS002",
+    firstName: "Priya",
+    lastName: "Nair",
+    email: "priya.nair@vistara.io",
+    phoneNumber: "+91 98400 11002",
+    gender: "FEMALE",
+    year: "SECOND",
+    status: "ACTIVE",
+    subClub: "Design & Creative",
+    avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&auto=format&fit=crop&q=80",
+    createdAt: "2026-01-18",
+  },
+  {
+    id: "mem-003",
+    membershipId: "VSC-2026-0003",
+    registerNumber: "21EC015",
+    firstName: "Karthik",
+    lastName: "Rajan",
+    email: "karthik.rajan@vistara.io",
+    phoneNumber: "+91 98400 11003",
+    gender: "MALE",
+    year: "FOURTH",
+    status: "ACTIVE",
+    subClub: "Events & Operations",
+    avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&auto=format&fit=crop&q=80",
+    createdAt: "2026-01-20",
+  },
+  {
+    id: "mem-004",
+    membershipId: "VSC-2026-0004",
+    registerNumber: "23AI004",
+    firstName: "Sneha",
+    lastName: "Krishnan",
+    email: "sneha.k@vistara.io",
+    phoneNumber: "+91 98400 11004",
+    gender: "FEMALE",
+    year: "FIRST",
+    status: "ACTIVE",
+    subClub: "Media & Content",
+    avatarUrl: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&auto=format&fit=crop&q=80",
+    createdAt: "2026-02-01",
+  },
+  {
+    id: "mem-005",
+    membershipId: "VSC-2026-0005",
+    registerNumber: "22ME008",
+    firstName: "Vikram",
+    lastName: "Sundaram",
+    email: "vikram.s@vistara.io",
+    phoneNumber: null,
+    gender: "MALE",
+    year: "THIRD",
+    status: "INACTIVE",
+    subClub: "Tech & Dev",
+    avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&auto=format&fit=crop&q=80",
+    createdAt: "2026-02-05",
+  },
+  {
+    id: "mem-006",
+    membershipId: "VSC-2026-0006",
+    registerNumber: "20CS030",
+    firstName: "Divya",
+    lastName: "Pillai",
+    email: "divya.pillai@vistara.io",
+    phoneNumber: "+91 98400 11006",
+    gender: "FEMALE",
+    year: "ALUMNI",
+    status: "ACTIVE",
+    subClub: "Research & Innovation",
+    avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&auto=format&fit=crop&q=80",
+    createdAt: "2026-02-10",
+  },
+  {
+    id: "mem-007",
+    membershipId: "VSC-2026-0007",
+    registerNumber: "23CS021",
+    firstName: "Rohit",
+    lastName: "Verma",
+    email: "rohit.verma@vistara.io",
+    phoneNumber: "+91 98400 11007",
+    gender: "MALE",
+    year: "FIRST",
+    status: "ACTIVE",
+    subClub: "Design & Creative",
+    avatarUrl: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=80&auto=format&fit=crop&q=80",
+    createdAt: "2026-02-12",
+  },
+  {
+    id: "mem-008",
+    membershipId: "VSC-2026-0008",
+    registerNumber: "22IT011",
+    firstName: "Ananya",
+    lastName: "Sharma",
+    email: "ananya.s@vistara.io",
+    phoneNumber: "+91 98400 11008",
+    gender: "FEMALE",
+    year: "SECOND",
+    status: "SUSPENDED",
+    subClub: "Events & Operations",
+    avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&auto=format&fit=crop&q=80",
+    createdAt: "2026-02-15",
+  },
+  {
+    id: "mem-009",
+    membershipId: "VSC-2026-0009",
+    registerNumber: "21CS044",
+    firstName: "Aditya",
+    lastName: "Bose",
+    email: "aditya.bose@vistara.io",
+    phoneNumber: "+91 98400 11009",
+    gender: "MALE",
+    year: "FOURTH",
+    status: "ACTIVE",
+    subClub: "Media & Content",
+    avatarUrl: "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?w=80&auto=format&fit=crop&q=80",
+    createdAt: "2026-02-18",
+  },
+  {
+    id: "mem-010",
+    membershipId: "VSC-2026-0010",
+    registerNumber: "23EC005",
+    firstName: "Meera",
+    lastName: "Iyer",
+    email: "meera.iyer@vistara.io",
+    phoneNumber: "+91 98400 11010",
+    gender: "FEMALE",
+    year: "FIRST",
+    status: "ACTIVE",
+    subClub: "Research & Innovation",
+    avatarUrl: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&auto=format&fit=crop&q=80",
+    createdAt: "2026-03-01",
+  },
+  {
+    id: "mem-011",
+    membershipId: "VSC-2026-0011",
+    registerNumber: "22CS055",
+    firstName: "Nikhil",
+    lastName: "Gupta",
+    email: "nikhil.g@vistara.io",
+    phoneNumber: null,
+    gender: "MALE",
+    year: "THIRD",
+    status: "ACTIVE",
+    subClub: "Tech & Dev",
+    avatarUrl: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=80&auto=format&fit=crop&q=80",
+    createdAt: "2026-03-05",
+  },
+  {
+    id: "mem-012",
+    membershipId: "VSC-2026-0012",
+    registerNumber: "21AI019",
+    firstName: "Kavya",
+    lastName: "Reddy",
+    email: "kavya.reddy@vistara.io",
+    phoneNumber: "+91 98400 11012",
+    gender: "FEMALE",
+    year: "FOURTH",
+    status: "INACTIVE",
+    subClub: null,
+    avatarUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=80&auto=format&fit=crop&q=80",
+    createdAt: "2026-03-08",
+  },
+];
