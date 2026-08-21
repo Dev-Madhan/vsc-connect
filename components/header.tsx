@@ -1,9 +1,10 @@
 "use client";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Logo } from "@/components/logo";
 import { useScroll } from "@/hooks/use-scroll";
 import { Button } from "@/components/ui/button";
 import { MobileNav } from "@/components/mobile-nav";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
 export const navLinks = [
@@ -23,6 +24,7 @@ export const navLinks = [
 
 export function Header() {
 	const scrolled = useScroll(10);
+	const [hoveredLink, setHoveredLink] = useState<string | null>(null);
 
 	return (
 		<div className="fixed left-0 right-0 top-6 z-50 flex justify-center px-4 pointer-events-none">
@@ -35,28 +37,55 @@ export function Header() {
 				)}
 			>
 				<nav className="flex h-14 w-full items-center justify-between px-6">
+					{/* Mobile: Logo at left */}
+					<div className="flex items-center md:hidden">
+						<a className="transition-opacity hover:opacity-80" href="#">
+							<span className="font-space-grotesk text-base font-bold uppercase tracking-[0.15em] text-foreground">VSC Connect</span>
+						</a>
+					</div>
 					{/* Left: Links */}
 					<div className="flex flex-1 items-center">
-						<div className="hidden items-center gap-2 md:flex">
+						<div
+							className="hidden items-center gap-1 md:flex"
+							onMouseLeave={() => setHoveredLink(null)}
+						>
 							{navLinks.map((link) => (
-								<a 
-									key={link.label} 
+								<a
+									key={link.label}
 									href={link.href}
-									className="whitespace-nowrap rounded-full px-4 py-1.5 text-[13px] font-medium text-muted-foreground/80 transition-all duration-300 ease-out hover:bg-accent/60 hover:text-foreground hover:shadow-[0_0_10px_rgba(0,0,0,0.03)] dark:hover:shadow-[0_0_10px_rgba(255,255,255,0.03)]"
+									className="relative whitespace-nowrap px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-foreground/60 transition-colors duration-150 hover:text-foreground"
+									onMouseEnter={() => setHoveredLink(link.label)}
 								>
-									{link.label}
+									<AnimatePresence>
+										{hoveredLink === link.label && (
+											<motion.span
+												className="absolute inset-0 rounded-md bg-accent"
+												layoutId="nav-hover"
+												initial={{ opacity: 0 }}
+												animate={{ opacity: 1 }}
+												exit={{ opacity: 0 }}
+												transition={{
+													type: "spring",
+													stiffness: 350,
+													damping: 30,
+													mass: 0.8,
+												}}
+											/>
+										)}
+									</AnimatePresence>
+									<span className="relative z-10">{link.label}</span>
 								</a>
 							))}
 						</div>
 					</div>
 
-					{/* Center: Logo */}
-					<div className="flex shrink-0 items-center justify-center">
+					{/* Center: Logo (desktop only) */}
+					<div className="hidden md:flex shrink-0 items-center justify-center">
 						<a
 							className="transition-opacity hover:opacity-80"
 							href="#"
 						>
-							<Logo className="h-5" />
+							<span className="font-space-grotesk text-base font-bold uppercase tracking-[0.15em] text-foreground">VSC Connect</span>
 						</a>
 					</div>
 

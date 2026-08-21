@@ -1,43 +1,87 @@
-import { cn } from "@/lib/utils";
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Portal } from "@/components/portal";
 import { navLinks } from "@/components/header";
-import { XIcon, MenuIcon } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import gsap from "gsap";
 
 const containerVariants = {
-	hidden: { opacity: 0, y: -20, scaleY: 0.95 },
+	hidden: { opacity: 0, y: -12 },
 	visible: {
 		opacity: 1,
 		y: 0,
-		scaleY: 1,
 		transition: {
-			duration: 0.3,
-			ease: [0.16, 1, 0.3, 1],
-			staggerChildren: 0.06,
-			delayChildren: 0.1,
+			duration: 0.25,
+			ease: [0.25, 0.1, 0.25, 1] as const,
+			staggerChildren: 0.04,
+			delayChildren: 0.06,
 		},
 	},
 	exit: {
 		opacity: 0,
-		y: -10,
-		scaleY: 0.95,
-		transition: { duration: 0.2 },
+		y: -8,
+		transition: { duration: 0.15, ease: [0.25, 0.1, 0.25, 1] as const },
 	},
 };
 
 const itemVariants = {
-	hidden: { opacity: 0, y: 15, filter: "blur(4px)" },
+	hidden: { opacity: 0, y: 8 },
 	visible: {
 		opacity: 1,
 		y: 0,
-		filter: "blur(0px)",
-		transition: { duration: 0.4, ease: "easeOut" },
+		transition: { duration: 0.25, ease: [0.25, 0.1, 0.25, 1] as const },
 	},
 	exit: { opacity: 0, transition: { duration: 0.1 } },
 };
+
+function ToggleIcon({ open }: { open: boolean }) {
+	const topRef = useRef<SVGLineElement>(null);
+	const botRef = useRef<SVGLineElement>(null);
+	const isFirstRender = useRef(true);
+
+	useEffect(() => {
+		if (isFirstRender.current) {
+			isFirstRender.current = false;
+			if (!open) return;
+		}
+
+		const tl = gsap.timeline({ defaults: { ease: "power2.inOut" } });
+
+		if (open) {
+			tl.to(topRef.current, { y: 4, duration: 0.2 }, 0)
+			  .to(botRef.current, { y: -4, duration: 0.2 }, 0)
+			  .to(topRef.current, { rotate: 45, transformOrigin: "center", duration: 0.25 }, 0.15)
+			  .to(botRef.current, { rotate: -45, transformOrigin: "center", duration: 0.25 }, 0.15);
+		} else {
+			tl.to(topRef.current, { rotate: 0, transformOrigin: "center", duration: 0.25 }, 0)
+			  .to(botRef.current, { rotate: 0, transformOrigin: "center", duration: 0.25 }, 0)
+			  .to(topRef.current, { y: 0, duration: 0.2 }, 0.15)
+			  .to(botRef.current, { y: 0, duration: 0.2 }, 0.15);
+		}
+
+		return () => { tl.kill(); };
+	}, [open]);
+
+	return (
+		<svg width="16" height="16" viewBox="0 0 16 16" className="overflow-visible">
+			<line
+				ref={topRef}
+				x1="2" y1="4" x2="14" y2="4"
+				stroke="currentColor"
+				strokeWidth="2"
+				strokeLinecap="round"
+			/>
+			<line
+				ref={botRef}
+				x1="2" y1="12" x2="14" y2="12"
+				stroke="currentColor"
+				strokeWidth="2"
+				strokeLinecap="round"
+			/>
+		</svg>
+	);
+}
 
 export function MobileNav() {
 	const [open, setOpen] = React.useState(false);
@@ -48,16 +92,12 @@ export function MobileNav() {
 				aria-controls="mobile-menu"
 				aria-expanded={open}
 				aria-label="Toggle menu"
-				className="md:hidden"
+				className="md:hidden border-2"
 				onClick={() => setOpen(!open)}
 				size="icon"
 				variant="outline"
 			>
-				{open ? (
-					<XIcon className="size-4.5" />
-				) : (
-					<MenuIcon className="size-4.5" />
-				)}
+				<ToggleIcon open={open} />
 			</Button>
 
 			<AnimatePresence>
@@ -79,7 +119,8 @@ export function MobileNav() {
 							initial="hidden"
 							animate="visible"
 							exit="exit"
-							className="absolute inset-x-0 top-0 pb-6 p-4 flex flex-col bg-background/95 backdrop-blur-xl border-b border-border/40 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] origin-top z-50 overflow-hidden"
+							style={{ willChange: "opacity, transform" }}
+							className="absolute inset-x-0 top-0 pb-6 p-4 flex flex-col bg-background border-b border-border/40 shadow-[0_12px_24px_-8px_rgba(0,0,0,0.08)] z-50 overflow-hidden"
 						>
 							<div className="grid gap-y-1 mt-4">
 								{navLinks.map((link) => (
@@ -97,7 +138,6 @@ export function MobileNav() {
 								))}
 							</div>
 							<motion.div variants={itemVariants} className="mt-4 px-1">
-								{/* Exact same button theme and text styling as desktop header */}
 								<Button 
 									variant="outline"
 									render={<Link href="/login" />}
