@@ -68,12 +68,12 @@ export const auth = betterAuth({
   },
 
   socialProviders: {
-    google: {
-      clientId: env.GOOGLE_CLIENT_ID,
-      clientSecret: env.GOOGLE_CLIENT_SECRET,
-      // No getUserInfo override — use Better Auth's built-in Google profile fetching.
-      // Allowlist enforcement happens in the databaseHooks.session.create.before hook above.
-    },
+    // Google SSO is temporarily disabled — re-enable by restoring required
+    // GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET in lib/env.ts and uncommenting below.
+    // google: {
+    //   clientId: env.GOOGLE_CLIENT_ID!,
+    //   clientSecret: env.GOOGLE_CLIENT_SECRET!,
+    // },
   },
 
   emailAndPassword: {

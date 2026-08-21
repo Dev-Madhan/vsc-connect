@@ -7,17 +7,30 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
 
+// Human-readable messages for server-side error codes passed via ?error= query param
+const SERVER_ERROR_MESSAGES: Record<string, string> = {
+  unauthorized:
+    "Your account does not have dashboard access. Only authorised club members may sign in.",
+};
+
+interface LoginFormProps extends React.ComponentProps<"div"> {
+  /** Error code from the server (e.g. "unauthorized") */
+  error?: string;
+}
+
 export function LoginForm({
   className,
+  error: serverError,
   ...props
-}: React.ComponentProps<"div">) {
+}: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [activeSlide, setActiveSlide] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    serverError ? (SERVER_ERROR_MESSAGES[serverError] ?? "An error occurred. Please try again.") : null
+  );
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
