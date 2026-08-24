@@ -109,9 +109,9 @@ const NAV_SECTIONS: { title: string; items: NavItem[] }[] = [
 // ─── Role pill ────────────────────────────────────────────────────────────────
 const ROLE_META: Record<RoleEnum, { icon: React.ElementType; label: string }> = {
   SUPER_ADMIN: { icon: ShieldCheck, label: "Super Admin" },
-  ADMIN:       { icon: Crown,       label: "President / VP" },
-  MODERATOR:   { icon: UserCog,     label: "Secretary" },
-  USER:        { icon: Users,       label: "Member" },
+  ADMIN: { icon: Crown, label: "President / VP" },
+  MODERATOR: { icon: UserCog, label: "Secretary" },
+  USER: { icon: Users, label: "Member" },
 };
 
 // ─── Props ────────────────────────────────────────────────────────────────────
