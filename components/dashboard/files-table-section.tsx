@@ -6,12 +6,8 @@ import {
 } from "@/lib/drive-data";
 import {
   FileText,
-  FileSpreadsheet,
-  FileCode,
-  Image as ImageIcon,
   Link2,
   MoreHorizontal,
-  ArrowUpDown,
   Download,
   Trash2,
   Star,

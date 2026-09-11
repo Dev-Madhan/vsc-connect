@@ -394,7 +394,15 @@ export function ODGeneratorView({ subClubs, defaultSubClubId = '', isScoped }: O
       description: letter.description,
       dateFrom:    letter.dateFrom,
       dateTo:      letter.dateTo,
-      students:    sections.flatMap((sec) => sec.students.map(({ _id: _x, ...rest }) => rest)),
+      students:    sections.flatMap((sec) =>
+        sec.students.map(({ _id, ...rest }) => ({
+          name: rest.name,
+          vmNumber: rest.vmNumber,
+          department: rest.department,
+          year: rest.year,
+          subClubId: rest.subClubId,
+        }))
+      ),
     };
 
     startTransition(async () => {
@@ -418,7 +426,7 @@ export function ODGeneratorView({ subClubs, defaultSubClubId = '', isScoped }: O
         document.body.removeChild(a); URL.revokeObjectURL(url);
         setDownloadSuccess(true);
         setTimeout(() => setDownloadSuccess(false), 4000);
-      } catch (_e) {
+      } catch {
         setServerError('Network error — please try again');
       }
     });

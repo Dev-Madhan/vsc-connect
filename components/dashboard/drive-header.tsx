@@ -133,7 +133,7 @@ export function DriveHeader({
                 <div className="flex gap-3 text-xs text-gray-600">
                   <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-medium text-gray-800">Sarah shared "Design Files" with you</p>
+                    <p className="font-medium text-gray-800">Sarah shared &ldquo;Design Files&rdquo; with you</p>
                     <span className="text-[10px] text-gray-400">10 minutes ago</span>
                   </div>
                 </div>

@@ -10,9 +10,7 @@ import {
   Calendar,
   HardDrive,
   Users,
-  Eye,
   Star,
-  ExternalLink,
 } from "lucide-react";
 
 interface FileDetailsPanelProps {

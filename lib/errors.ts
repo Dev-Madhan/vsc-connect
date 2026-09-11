@@ -1,8 +1,8 @@
 export class APIError extends Error {
   public statusCode: number;
-  public details?: any;
+  public details?: unknown;
 
-  constructor(message: string, statusCode: number = 500, details?: any) {
+  constructor(message: string, statusCode: number = 500, details?: unknown) {
     super(message);
     this.name = this.constructor.name;
     this.statusCode = statusCode;
@@ -16,7 +16,7 @@ export class APIError extends Error {
 }
 
 export class ValidationError extends APIError {
-  constructor(message: string, details?: any) {
+  constructor(message: string, details?: unknown) {
     super(message, 400, details);
   }
 }

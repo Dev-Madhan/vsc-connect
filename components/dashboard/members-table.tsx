@@ -37,6 +37,23 @@ const STATUS_LABELS: Record<MemberStatus, string> = {
   SUSPENDED: "Suspended",
 };
 
+function SortIcon({
+  field,
+  sortField,
+  sortDir,
+}: {
+  field: SortField;
+  sortField: SortField;
+  sortDir: SortDir;
+}) {
+  if (sortField !== field) return <ChevronsUpDown className="w-3 h-3 ml-1 text-gray-300" />;
+  return sortDir === "asc" ? (
+    <ChevronUp className="w-3 h-3 ml-1 text-[#1c64ec]" />
+  ) : (
+    <ChevronDown className="w-3 h-3 ml-1 text-[#1c64ec]" />
+  );
+}
+
 export function MembersTable({ members, onView, onEdit, onArchive }: MembersTableProps) {
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [sortField, setSortField] = useState<SortField>("membershipId");
@@ -44,7 +61,7 @@ export function MembersTable({ members, onView, onEdit, onArchive }: MembersTabl
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+      setSortDir(sortDir === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
       setSortDir("asc");
@@ -84,13 +101,6 @@ export function MembersTable({ members, onView, onEdit, onArchive }: MembersTabl
     return sortDir === "asc" ? cmp : -cmp;
   });
 
-  const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field) return <ChevronsUpDown className="w-3 h-3 ml-1 text-gray-300" />;
-    return sortDir === "asc"
-      ? <ChevronUp className="w-3 h-3 ml-1 text-[#1c64ec]" />
-      : <ChevronDown className="w-3 h-3 ml-1 text-[#1c64ec]" />;
-  };
-
   const thClass =
     "py-2.5 px-3 text-left text-[11px] font-bold uppercase tracking-wider text-gray-400 cursor-pointer hover:text-gray-700 select-none";
 
@@ -111,32 +121,32 @@ export function MembersTable({ members, onView, onEdit, onArchive }: MembersTabl
           <tr className="border-b border-gray-100">
             <th className={thClass} onClick={() => handleSort("membershipId")}>
               <span className="flex items-center">
-                ID <SortIcon field="membershipId" />
+                ID <SortIcon field="membershipId" sortField={sortField} sortDir={sortDir} />
               </span>
             </th>
             <th className={thClass} onClick={() => handleSort("name")}>
               <span className="flex items-center">
-                Member <SortIcon field="name" />
+                Member <SortIcon field="name" sortField={sortField} sortDir={sortDir} />
               </span>
             </th>
             <th className={thClass} onClick={() => handleSort("year")}>
               <span className="flex items-center">
-                Year <SortIcon field="year" />
+                Year <SortIcon field="year" sortField={sortField} sortDir={sortDir} />
               </span>
             </th>
             <th className={thClass} onClick={() => handleSort("subClub")}>
               <span className="flex items-center">
-                Sub-club <SortIcon field="subClub" />
+                Sub-club <SortIcon field="subClub" sortField={sortField} sortDir={sortDir} />
               </span>
             </th>
             <th className={thClass} onClick={() => handleSort("status")}>
               <span className="flex items-center">
-                Status <SortIcon field="status" />
+                Status <SortIcon field="status" sortField={sortField} sortDir={sortDir} />
               </span>
             </th>
             <th className={thClass} onClick={() => handleSort("createdAt")}>
               <span className="flex items-center">
-                Joined <SortIcon field="createdAt" />
+                Joined <SortIcon field="createdAt" sortField={sortField} sortDir={sortDir} />
               </span>
             </th>
             <th className="py-2.5 px-3" />

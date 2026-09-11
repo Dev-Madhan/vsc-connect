@@ -9,7 +9,7 @@ export const logAuditAction = async (params: {
   action: string;
   entity: string;
   entityId?: string;
-  details?: Record<string, any> | string;
+  details?: Record<string, unknown> | string;
   ipAddress?: string;
 }) => {
   try {

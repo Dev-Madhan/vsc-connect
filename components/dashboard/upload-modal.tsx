@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { UploadCloud, X, File, CheckCircle2 } from "lucide-react";
+import { UploadCloud, X } from "lucide-react";
 import { DriveFileItem, MOCK_USERS } from "@/lib/drive-data";
 
 interface UploadModalProps {

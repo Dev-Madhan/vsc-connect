@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import { QuickAccessFolder } from "@/lib/drive-data";
 import { FileText } from "lucide-react";
 

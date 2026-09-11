@@ -238,6 +238,7 @@ export function ODDocument({ data, subClubNames, logoDataUrl }: ODDocumentProps)
       {/* ── PAGE 1: Request Letter Only ────────────────────────────────────── */}
       <Page size="A4" style={S.page}>
         {/* Banner Logo */}
+        {/* eslint-disable-next-line jsx-a11y/alt-text */}
         {logoDataUrl ? <Image src={logoDataUrl} style={S.headerImage} /> : null}
 
         {/* Title */}

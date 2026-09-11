@@ -7,7 +7,7 @@ const novu = new Novu(env.NOVU_API_KEY);
 export const triggerNotification = async (
   workflowId: string, 
   subscriberId: string, 
-  payload: Record<string, any>
+  payload: Parameters<Novu['trigger']>[1]['payload']
 ) => {
   try {
     await novu.trigger(workflowId, {

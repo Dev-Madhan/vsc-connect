@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";

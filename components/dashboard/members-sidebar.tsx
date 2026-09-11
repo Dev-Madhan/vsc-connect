@@ -11,7 +11,6 @@ import {
   ShieldCheck,
   LogOut,
   ChevronRight,
-  Menu,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -95,7 +94,7 @@ export function MembersSidebar({
           <p className="text-[10px] font-bold tracking-widest text-blue-200/70 uppercase px-3 mb-1">
             Members
           </p>
-          {MEMBER_FILTERS.map(({ id, label, color }) => {
+          {MEMBER_FILTERS.map(({ id, label }) => {
             const isActive = activeSection === id;
             const count = totalCounts[id];
             return (

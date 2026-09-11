@@ -8,18 +8,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
 export const navLinks = [
-	{
-		label: "About",
-		href: "#about",
-	},
-	{
-		label: "Events",
-		href: "#events",
-	},
-	{
-		label: "News",
-		href: "#news",
-	},
+	{ label: "About", href: "#about" },
+	{ label: "Clubs", href: "#sub-clubs" },
+	{ label: "Events", href: "#events" },
+	{ label: "Projects", href: "#projects" },
+	{ label: "Gallery", href: "#gallery" },
+	{ label: "Recruitment", href: "#recruitment" },
+	{ label: "Contact", href: "#contact" },
 ];
 
 export function Header() {
@@ -30,7 +25,7 @@ export function Header() {
 		<div className="fixed left-0 right-0 top-6 z-50 flex justify-center px-4 pointer-events-none">
 			<header
 				className={cn(
-					"pointer-events-auto w-full max-w-3xl rounded-md border-2 border-border/40 bg-background/90 shadow-sm backdrop-blur-md transition-all duration-300 ease-out",
+					"pointer-events-auto w-full max-w-4xl lg:max-w-5xl rounded-full border-2 border-border/40 bg-background/90 shadow-sm backdrop-blur-md transition-all duration-300 ease-out",
 					{
 						"shadow-md border-border/60 bg-background/95": scrolled,
 					}

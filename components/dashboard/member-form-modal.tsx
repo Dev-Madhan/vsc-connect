@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { X, UserPlus, Pencil, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -65,6 +65,18 @@ const STATUS_OPTIONS: { value: MemberStatus; label: string }[] = [
   { value: "SUSPENDED", label: "Suspended" },
 ];
 
+const memberToForm = (m: MockMember): FormData => ({
+  firstName: m.firstName,
+  lastName: m.lastName,
+  email: m.email,
+  phoneNumber: m.phoneNumber ?? "",
+  registerNumber: m.registerNumber,
+  gender: m.gender,
+  year: m.year,
+  status: m.status,
+  subClub: m.subClub ?? "",
+});
+
 export function MemberFormModal({
   isOpen,
   onClose,
@@ -72,29 +84,19 @@ export function MemberFormModal({
   editMember,
 }: MemberFormModalProps) {
   const isEdit = !!editMember;
-  const [form, setForm] = useState<FormData>(EMPTY_FORM);
+  const [prevMemberId, setPrevMemberId] = useState<string | null>(null);
+  const [form, setForm] = useState<FormData>(() =>
+    editMember ? memberToForm(editMember) : EMPTY_FORM
+  );
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [saving, setSaving] = useState(false);
 
-  // Populate form when editing
-  useEffect(() => {
-    if (editMember) {
-      setForm({
-        firstName: editMember.firstName,
-        lastName: editMember.lastName,
-        email: editMember.email,
-        phoneNumber: editMember.phoneNumber ?? "",
-        registerNumber: editMember.registerNumber,
-        gender: editMember.gender,
-        year: editMember.year,
-        status: editMember.status,
-        subClub: editMember.subClub ?? "",
-      });
-    } else {
-      setForm(EMPTY_FORM);
-    }
+  const currentId = editMember?.id ?? null;
+  if (currentId !== prevMemberId) {
+    setPrevMemberId(currentId);
+    setForm(editMember ? memberToForm(editMember) : EMPTY_FORM);
     setErrors({});
-  }, [editMember, isOpen]);
+  }
 
   if (!isOpen) return null;
 

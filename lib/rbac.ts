@@ -47,13 +47,13 @@ export const requireRole = async (minimumRole: RoleEnum) => {
 // --- Granular Permission Helpers ---
 
 export const canManageUsers = async () => {
-  const { role } = await requireRole(RoleEnum.SUPER_ADMIN);
+  await requireRole(RoleEnum.SUPER_ADMIN);
   return true; // Only Super Admins
 };
 
 export const canManageEvents = async () => {
   // President, VP (ADMIN) and above can manage events
-  const { role } = await requireRole(RoleEnum.ADMIN);
+  await requireRole(RoleEnum.ADMIN);
   return true; 
 };
 
