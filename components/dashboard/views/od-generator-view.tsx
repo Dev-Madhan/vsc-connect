@@ -349,10 +349,13 @@ export function ODGeneratorView({ subClubs, defaultSubClubId = '', isScoped }: O
   function validateLetter(): boolean {
     const e: Partial<Record<keyof LetterForm, string>> = {};
     if (!letter.fromName.trim())           e.fromName    = 'From name is required';
+    else if (letter.fromName.trim().length > 1000) e.fromName = 'From name is too long (max 1000 characters)';
     if (!letter.subject.trim())            e.subject     = 'Subject is required';
-    else if (letter.subject.length < 5)    e.subject     = 'Subject is too short';
+    else if (letter.subject.trim().length < 2)    e.subject     = 'Subject is too short (min 2 characters)';
+    else if (letter.subject.trim().length > 500)  e.subject     = 'Subject is too long (max 500 characters)';
     if (!letter.description.trim())        e.description = 'Description is required';
-    else if (letter.description.length<10) e.description = 'Too short';
+    else if (letter.description.trim().length < 5) e.description = 'Description is too short (min 5 characters)';
+    else if (letter.description.trim().length > 5000) e.description = 'Description is too long (max 5000 characters)';
     if (!letter.dateFrom)                  e.dateFrom    = 'Start date is required';
     if (!letter.dateTo)                    e.dateTo      = 'End date is required';
     else if (letter.dateFrom && letter.dateTo && letter.dateTo < letter.dateFrom)
@@ -362,7 +365,15 @@ export function ODGeneratorView({ subClubs, defaultSubClubId = '', isScoped }: O
   }
 
   function validateSections(): boolean {
-    if (sections.length === 0) return false;
+    if (sections.length === 0) {
+      setServerError('Please select at least one club section.');
+      return false;
+    }
+    const totalStudents = sections.reduce((n, s) => n + s.students.length, 0);
+    if (totalStudents === 0) {
+      setServerError('Please add at least one student before generating the PDF.');
+      return false;
+    }
     const errs: SectionErrs = {};
     sections.forEach((sec, si) => {
       sec.students.forEach((st, ti) => {
@@ -375,18 +386,31 @@ export function ODGeneratorView({ subClubs, defaultSubClubId = '', isScoped }: O
       });
     });
     setSectionErrors(errs);
-    return Object.keys(errs).length === 0;
+    if (Object.keys(errs).length > 0) {
+      setServerError('Please complete all student fields highlighted in red.');
+      return false;
+    }
+    return true;
   }
 
   // ── Navigation ────────────────────────────────────────────────────────────
-  function goToStep2() { if (validateLetter()) setStep(2); }
+  function goToStep2() {
+    setServerError(null);
+    if (validateLetter()) setStep(2);
+  }
   function goToStep1() { setStep(1); setServerError(null); }
 
   // ── Generate & download ───────────────────────────────────────────────────
   function handleGenerate() {
-    if (!validateSections()) return;
     setServerError(null);
     setDownloadSuccess(false);
+
+    if (!validateLetter()) {
+      setStep(1);
+      setServerError('Please correct the highlighted letter fields first.');
+      return;
+    }
+    if (!validateSections()) return;
 
     const payload: GenerateODInput = {
       fromName:    letter.fromName,
@@ -395,12 +419,12 @@ export function ODGeneratorView({ subClubs, defaultSubClubId = '', isScoped }: O
       dateFrom:    letter.dateFrom,
       dateTo:      letter.dateTo,
       students:    sections.flatMap((sec) =>
-        sec.students.map(({ _id, ...rest }) => ({
-          name: rest.name,
-          vmNumber: rest.vmNumber,
-          department: rest.department,
-          year: rest.year,
-          subClubId: rest.subClubId,
+        sec.students.map((st) => ({
+          name: st.name,
+          vmNumber: st.vmNumber,
+          department: st.department,
+          year: st.year,
+          subClubId: st.subClubId,
         }))
       ),
     };
@@ -413,7 +437,17 @@ export function ODGeneratorView({ subClubs, defaultSubClubId = '', isScoped }: O
         });
         if (!res.ok) {
           const d = await res.json().catch(() => ({}));
-          setServerError((d as { error?: string }).error ?? 'PDF generation failed');
+          let errMsg = (d as { error?: string })?.error ?? 'PDF generation failed';
+          const issues = (d as { issues?: { formErrors?: string[]; fieldErrors?: Record<string, string[]> } })?.issues;
+          if (issues?.fieldErrors && Object.keys(issues.fieldErrors).length > 0) {
+            const details = Object.entries(issues.fieldErrors)
+              .map(([field, errList]) => `${field}: ${errList?.join(', ')}`)
+              .join(' | ');
+            if (!errMsg.includes(details)) {
+              errMsg = `${errMsg} (${details})`;
+            }
+          }
+          setServerError(errMsg);
           return;
         }
         const blob = await res.blob();
@@ -508,6 +542,11 @@ export function ODGeneratorView({ subClubs, defaultSubClubId = '', isScoped }: O
                       className={iCls(!!letterErrors.dateTo)} />
                   </Field>
                 </div>
+                {serverError && (
+                  <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-xs font-medium text-red-600">
+                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" />{serverError}
+                  </div>
+                )}
                 <div className="pt-2 flex justify-end">
                   <button onClick={goToStep2}
                     className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#5B50E5] text-white text-sm font-semibold hover:bg-[#4a40d4] shadow-[0_2px_12px_rgba(91,80,229,0.3)] transition-all">

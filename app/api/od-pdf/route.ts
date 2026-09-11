@@ -36,8 +36,13 @@ export async function POST(req: NextRequest) {
 
   const parsed = generateODSchema.safeParse(body);
   if (!parsed.success) {
+    const flattened = parsed.error.flatten();
+    const details = Object.entries(flattened.fieldErrors)
+      .map(([field, msgs]) => `${field}: ${(msgs ?? []).join(', ')}`)
+      .join('; ');
+    const errorMsg = details ? `Validation failed: ${details}` : 'Validation failed';
     return NextResponse.json(
-      { error: 'Validation failed', issues: parsed.error.flatten() },
+      { error: errorMsg, issues: flattened },
       { status: 422 },
     );
   }
@@ -78,7 +83,11 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Stream response ───────────────────────────────────────────────────────
-  const fileName = `OD_${data.fromName.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`;
+  const safeName = (data.fromName.split('\n')[0] || 'Letter')
+    .trim()
+    .replace(/[^a-zA-Z0-9_-]/g, '_')
+    .slice(0, 30);
+  const fileName = `OD_${safeName || 'Letter'}_${new Date().toISOString().slice(0, 10)}.pdf`;
 
   return new NextResponse(pdfBuffer.buffer as ArrayBuffer, {
     status: 200,
