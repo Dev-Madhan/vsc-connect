@@ -28,7 +28,7 @@ export function LoginForm({
   ...props
 }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -58,7 +58,7 @@ export function LoginForm({
     setError(null);
     setIsLoading(true);
     try {
-      const result = await authClient.signIn.email({ email, password });
+      const result = await authClient.signIn.username({ username, password });
       if (result.error) {
         const msg = result.error.message ?? "";
         if (
@@ -108,17 +108,17 @@ export function LoginForm({
             )}
 
             <div className="space-y-3">
-              <Label htmlFor="email" className="text-sm font-semibold text-[#262626]">
-                Email
+              <Label htmlFor="username" className="text-sm font-semibold text-[#262626]">
+                Username
               </Label>
               <Input
-                type="email"
-                id="email"
-                name="email"
-                placeholder="you@example.com"
-                value={email}
+                type="text"
+                id="username"
+                name="username"
+                placeholder="admin@vsc"
+                value={username}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  setEmail(e.target.value);
+                  setUsername(e.target.value);
                   setError(null);
                 }}
                 required
