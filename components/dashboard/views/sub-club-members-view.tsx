@@ -354,13 +354,25 @@ export function SubClubMembersView({
                 {members.length} member{members.length !== 1 ? "s" : ""} registered
               </p>
             </div>
-            <button
-              onClick={openAdd}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#5B50E5] text-white text-sm font-semibold hover:bg-[#4a40d4] shadow-[0_2px_12px_rgba(91,80,229,0.3)] transition-all shrink-0"
-            >
-              <UserPlus className="w-4 h-4" />
-              Add Member
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <a
+                href={subClubId ? `/api/membership-card-pdf?subClubId=${subClubId}` : `/api/membership-card-pdf`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#5B50E5]/30 bg-[#5B50E5]/5 text-[#5B50E5] text-sm font-semibold hover:bg-[#5B50E5]/10 transition-all"
+                title="Download printable membership cards PDF"
+              >
+                <IdCard className="w-4 h-4" />
+                <span className="hidden sm:inline">Cards (PDF)</span>
+              </a>
+              <button
+                onClick={openAdd}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#5B50E5] text-white text-sm font-semibold hover:bg-[#4a40d4] shadow-[0_2px_12px_rgba(91,80,229,0.3)] transition-all"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>Add Member</span>
+              </button>
+            </div>
           </div>
 
           {/* Scoped banner */}
@@ -502,6 +514,7 @@ export function SubClubMembersView({
                       </td>
                       <td className="py-3 px-3" onClick={(e) => e.stopPropagation()}>
                         <RowMenu
+                          memberId={m.id}
                           onView={() => setViewTarget(m)}
                           onEdit={() => openEdit(m)}
                           onRemove={() => setRemoveTarget(m)}
@@ -590,6 +603,14 @@ export function SubClubMembersView({
 
             {/* Actions */}
             <div className="pt-4 border-t border-[#C7D2FE]/20 space-y-2">
+              <a
+                href={`/api/membership-card-pdf?memberId=${viewTarget.id}`}
+                target="_blank"
+                rel="noreferrer"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-[#5B50E5] bg-[#5B50E5] text-white text-sm font-semibold hover:bg-[#4a40d4] transition-colors"
+              >
+                <IdCard className="w-4 h-4" /> Download Card (PDF)
+              </a>
               <button
                 onClick={() => openEdit(viewTarget)}
                 className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#5B50E5]/8 hover:bg-[#5B50E5]/15 text-sm font-semibold text-[#5B50E5] transition-colors"
@@ -813,7 +834,17 @@ function Th({
   );
 }
 
-function RowMenu({ onView, onEdit, onRemove }: { onView: () => void; onEdit: () => void; onRemove: () => void }) {
+function RowMenu({
+  memberId,
+  onView,
+  onEdit,
+  onRemove,
+}: {
+  memberId: string;
+  onView: () => void;
+  onEdit: () => void;
+  onRemove: () => void;
+}) {
   const [open, setOpen] = useState(false);
   return (
     <div className="relative inline-block">
@@ -826,11 +857,20 @@ function RowMenu({ onView, onEdit, onRemove }: { onView: () => void; onEdit: () 
       {open && (
         <>
           <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-7 w-40 bg-white rounded-xl shadow-xl border border-[#C7D2FE]/40 py-1 z-40 text-xs text-[#262626]">
+          <div className="absolute right-0 top-7 w-44 bg-white rounded-xl shadow-xl border border-[#C7D2FE]/40 py-1 z-40 text-xs text-[#262626]">
             <button onClick={() => { onView(); setOpen(false); }}
               className="w-full flex items-center gap-2 px-3 py-2 hover:bg-[#FAFAFA] text-left">
               <Eye className="w-3.5 h-3.5 text-[#5B50E5]" /> View Profile
             </button>
+            <a
+              href={`/api/membership-card-pdf?memberId=${memberId}`}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => setOpen(false)}
+              className="w-full flex items-center gap-2 px-3 py-2 hover:bg-[#FAFAFA] text-left text-[#5B50E5]"
+            >
+              <IdCard className="w-3.5 h-3.5 text-[#5B50E5]" /> Membership Card
+            </a>
             <button onClick={() => { onEdit(); setOpen(false); }}
               className="w-full flex items-center gap-2 px-3 py-2 hover:bg-[#FAFAFA] text-left">
               <Pencil className="w-3.5 h-3.5 text-[#262626]/50" /> Edit Member

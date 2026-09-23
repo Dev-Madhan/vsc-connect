@@ -11,7 +11,7 @@ const ADMIN_USERS = [
   {
     name: "Super Administrator",
     username: "admin@vsc",
-    password: "admin@vsc2026",
+    password: "admin@vsc2026"
     email: "admin@vistaraconnect.internal",
     googleEmail: "mg5661639@gmail.com",
     role: RoleEnum.SUPER_ADMIN,
@@ -44,56 +44,56 @@ const SECRETARY_USERS: {
   email: string;
   subClubSlug: string;
 }[] = [
-  {
-    name: "Dance Secretary",
-    username: "dancesec@vsc",
-    password: "dance@vsc2026",
-    email: "dance.secretary@vistaraconnect.internal",
-    subClubSlug: "dance",
-  },
-  {
-    name: "Music Secretary",
-    username: "musicsec@vsc",
-    password: "music@vsc2026",
-    email: "music.secretary@vistaraconnect.internal",
-    subClubSlug: "music",
-  },
-  {
-    name: "Media Secretary",
-    username: "mediasec@vsc",
-    password: "media@vsc2026",
-    email: "media.secretary@vistaraconnect.internal",
-    subClubSlug: "media",
-  },
-  {
-    name: "Tech Secretary",
-    username: "techsec@vsc",
-    password: "tech@vsc2026",
-    email: "tech.secretary@vistaraconnect.internal",
-    subClubSlug: "tech",
-  },
-  {
-    name: "Compering Secretary",
-    username: "comperingsec@vsc",
-    password: "compering@vsc2026",
-    email: "compering.secretary@vistaraconnect.internal",
-    subClubSlug: "compering",
-  },
-  {
-    name: "Fashion Secretary",
-    username: "fashionsec@vsc",
-    password: "fashion@vsc2026",
-    email: "fashion.secretary@vistaraconnect.internal",
-    subClubSlug: "fashion",
-  },
-  {
-    name: "Art Secretary",
-    username: "artsec@vsc",
-    password: "art@vsc2026",
-    email: "art.secretary@vistaraconnect.internal",
-    subClubSlug: "art",
-  },
-];
+    {
+      name: "Dance Secretary",
+      username: "dancesec@vsc",
+      password: "dance@vsc2026",
+      email: "dance.secretary@vistaraconnect.internal",
+      subClubSlug: "dance",
+    },
+    {
+      name: "Music Secretary",
+      username: "musicsec@vsc",
+      password: "music@vsc2026",
+      email: "music.secretary@vistaraconnect.internal",
+      subClubSlug: "music",
+    },
+    {
+      name: "Media Secretary",
+      username: "mediasec@vsc",
+      password: "media@vsc2026",
+      email: "media.secretary@vistaraconnect.internal",
+      subClubSlug: "media",
+    },
+    {
+      name: "Tech Secretary",
+      username: "techsec@vsc",
+      password: "tech@vsc2026",
+      email: "tech.secretary@vistaraconnect.internal",
+      subClubSlug: "tech",
+    },
+    {
+      name: "Compering Secretary",
+      username: "comperingsec@vsc",
+      password: "compering@vsc2026",
+      email: "compering.secretary@vistaraconnect.internal",
+      subClubSlug: "compering",
+    },
+    {
+      name: "Fashion Secretary",
+      username: "fashionsec@vsc",
+      password: "fashion@vsc2026",
+      email: "fashion.secretary@vistaraconnect.internal",
+      subClubSlug: "fashion",
+    },
+    {
+      name: "Art Secretary",
+      username: "artsec@vsc",
+      password: "art@vsc2026",
+      email: "art.secretary@vistaraconnect.internal",
+      subClubSlug: "art",
+    },
+  ];
 
 // ---------------------------------------------------------------------------
 // Helper — create a credential user + hashed account record if not present
@@ -155,8 +155,8 @@ async function main() {
 
   // ── 1. Settings ────────────────────────────────────────────────────────────
   for (const s of [
-    { key: "SITE_NAME",           value: "Vistara Connect",  description: "Application name" },
-    { key: "ALLOW_REGISTRATION",  value: "false",            description: "Public registration disabled — invite only" },
+    { key: "SITE_NAME", value: "Vistara Connect", description: "Application name" },
+    { key: "ALLOW_REGISTRATION", value: "false", description: "Public registration disabled — invite only" },
   ]) {
     await prisma.setting.upsert({ where: { key: s.key }, update: {}, create: s });
   }
@@ -173,25 +173,25 @@ async function main() {
 
   // ── 3. Club & SubClubs ─────────────────────────────────────────────────────
   const club = await prisma.club.upsert({
-    where:  { slug: "vistara" },
+    where: { slug: "vistara" },
     update: {},
     create: { name: "Vistara", slug: "vistara", description: "The main club" },
   });
 
   const SUB_CLUBS = [
-    { name: "Dance",     slug: "dance",     description: "Dance sub-club" },
-    { name: "Music",     slug: "music",     description: "Music sub-club" },
-    { name: "Media",     slug: "media",     description: "Media & Content sub-club" },
-    { name: "Tech",      slug: "tech",      description: "Technology & Development sub-club" },
+    { name: "Dance", slug: "dance", description: "Dance sub-club" },
+    { name: "Music", slug: "music", description: "Music sub-club" },
+    { name: "Media", slug: "media", description: "Media & Content sub-club" },
+    { name: "Tech", slug: "tech", description: "Technology & Development sub-club" },
     { name: "Compering", slug: "compering", description: "Compering & Anchoring sub-club" },
-    { name: "Fashion",   slug: "fashion",   description: "Fashion sub-club" },
-    { name: "Art",       slug: "art",       description: "Art & Design sub-club" },
+    { name: "Fashion", slug: "fashion", description: "Fashion sub-club" },
+    { name: "Art", slug: "art", description: "Art & Design sub-club" },
   ];
 
   const subClubMap: Record<string, string> = {}; // slug → id
   for (const sc of SUB_CLUBS) {
     const row = await prisma.subClub.upsert({
-      where:  { slug: sc.slug },
+      where: { slug: sc.slug },
       update: { name: sc.name, description: sc.description },
       create: { ...sc, clubId: club.id },
     });
@@ -228,11 +228,11 @@ async function main() {
     }
 
     const userId = await upsertCredentialUser({
-      name:     sec.name,
+      name: sec.name,
       username: sec.username,
       password: sec.password,
-      email:    sec.email,
-      roleId:   moderatorRoleId,
+      email: sec.email,
+      roleId: moderatorRoleId,
     });
 
     // Ensure secretary has a Member row linked to their sub-club so
@@ -254,14 +254,14 @@ async function main() {
       const slug = sec.subClubSlug.toUpperCase().slice(0, 3);
       const member = await prisma.member.create({
         data: {
-          firstName:      sec.name.split(" ")[0],
-          lastName:       "Secretary",
-          email:          sec.email,
+          firstName: sec.name.split(" ")[0],
+          lastName: "Secretary",
+          email: sec.email,
           registerNumber: `SEC-${slug}-001`,
-          vmNumber:       `VM-SEC-${slug}-001`,
-          department:     "Club Administration",
-          gender:         "OTHER",
-          year:           "ALUMNI",
+          vmNumber: `VM-SEC-${slug}-001`,
+          department: "Club Administration",
+          gender: "OTHER",
+          year: "ALUMNI",
           membershipId,
           subClubId,
         },
@@ -269,7 +269,7 @@ async function main() {
 
       await prisma.user.update({
         where: { id: userId },
-        data:  { memberId: member.id },
+        data: { memberId: member.id },
       });
 
       console.log(`     ↳ Member record created for ${sec.name} (${subClubId})`);
@@ -278,7 +278,7 @@ async function main() {
       if (user.member.subClubId !== subClubId) {
         await prisma.member.update({
           where: { id: user.member.id },
-          data:  { subClubId },
+          data: { subClubId },
         });
         console.log(`     ↳ Sub-club updated for ${sec.name}`);
       }

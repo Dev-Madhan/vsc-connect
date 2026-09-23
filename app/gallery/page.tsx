@@ -1,20 +1,19 @@
 import { Header } from "@/components/header";
-import { GallerySection } from "@/components/public/gallery-section";
+import { GalleryArchiveView } from "@/components/public/gallery-archive-view";
 import { Footer } from "@/components/public/footer";
 
 export const metadata = {
-  title: "Media Gallery — Vistara Student Club",
-  description: "Explore the photographic and visual archives of Vistara cultural competitions, backstage preparation, and technical conferences.",
+  title: "Media Gallery & Archives — VSC Connect",
+  description: "Explore the photographic and visual archives of Vistara cultural competitions, hackathons, and backstage moments in our interactive folder vault.",
 };
 
 export default function GalleryPage() {
   return (
-    <main className="flex min-h-screen flex-col pt-16">
+    <main className="flex min-h-screen flex-col pt-[52px]">
       <Header />
-      <div className="pt-10">
-        <GallerySection />
-      </div>
+      <GalleryArchiveView />
       <Footer />
     </main>
   );
 }
+

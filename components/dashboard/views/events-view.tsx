@@ -11,8 +11,17 @@ import {
   X,
   Loader2,
   AlertCircle,
+  CheckCircle2,
+  UserCheck,
 } from "lucide-react";
-import { createEventAction, updateEventStatusAction, deleteEventAction } from "@/app/dashboard/events/actions";
+import {
+  createEventAction,
+  updateEventStatusAction,
+  deleteEventAction,
+  getEventParticipantsAction,
+  saveEventParticipantsAction,
+  type EventParticipantItem,
+} from "@/app/dashboard/events/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,7 +45,7 @@ interface EventsViewProps {
   isScoped?: boolean;
 }
 
-export function EventsView({ events: initialEvents, subClubs }: EventsViewProps) {
+export function EventsView({ events: initialEvents, subClubs, isScoped }: EventsViewProps) {
   const [events, setEvents] = useState<DashboardEventItem[]>(initialEvents);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -51,6 +60,90 @@ export function EventsView({ events: initialEvents, subClubs }: EventsViewProps)
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  // Participant selection state
+  const [participantsModalOpen, setParticipantsModalOpen] = useState(false);
+  const [activeEventForParticipants, setActiveEventForParticipants] = useState<DashboardEventItem | null>(null);
+  const [participantsList, setParticipantsList] = useState<EventParticipantItem[]>([]);
+  const [selectedParticipantIds, setSelectedParticipantIds] = useState<Set<string>>(new Set());
+  const [isLoadingParticipants, setIsLoadingParticipants] = useState(false);
+  const [isSavingParticipants, setIsSavingParticipants] = useState(false);
+  const [participantSearch, setParticipantSearch] = useState("");
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
+  };
+
+  const openParticipantsModal = async (evt: DashboardEventItem) => {
+    setActiveEventForParticipants(evt);
+    setParticipantsModalOpen(true);
+    setIsLoadingParticipants(true);
+    setParticipantSearch("");
+    const res = await getEventParticipantsAction(evt.id);
+    setIsLoadingParticipants(false);
+    if (res.ok) {
+      setParticipantsList(res.data.participants);
+      const initialSelected = new Set(
+        res.data.participants.filter((p) => p.selected).map((p) => p.id)
+      );
+      setSelectedParticipantIds(initialSelected);
+    } else {
+      setError(res.error);
+    }
+  };
+
+  const toggleParticipant = (memberId: string) => {
+    setSelectedParticipantIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(memberId)) next.delete(memberId);
+      else next.add(memberId);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedParticipantIds.size === filteredParticipants.length) {
+      setSelectedParticipantIds(new Set());
+    } else {
+      setSelectedParticipantIds(new Set(filteredParticipants.map((p) => p.id)));
+    }
+  };
+
+  const handleSaveParticipants = async () => {
+    if (!activeEventForParticipants) return;
+    setIsSavingParticipants(true);
+    const res = await saveEventParticipantsAction(
+      activeEventForParticipants.id,
+      Array.from(selectedParticipantIds)
+    );
+    setIsSavingParticipants(false);
+
+    if (res.ok) {
+      const newCount = selectedParticipantIds.size;
+      setEvents((prev) =>
+        prev.map((e) =>
+          e.id === activeEventForParticipants.id
+            ? { ...e, participantsCount: newCount }
+            : e
+        )
+      );
+      setParticipantsModalOpen(false);
+      showToast(`Saved ${newCount} participants for "${activeEventForParticipants.title}"`);
+    } else {
+      setError(res.error);
+    }
+  };
+
+  const filteredParticipants = participantsList.filter(
+    (p) =>
+      p.name.toLowerCase().includes(participantSearch.toLowerCase()) ||
+      p.registerNumber.toLowerCase().includes(participantSearch.toLowerCase()) ||
+      p.vmNumber.toLowerCase().includes(participantSearch.toLowerCase()) ||
+      p.department.toLowerCase().includes(participantSearch.toLowerCase())
+  );
+
 
   const filtered = events.filter((evt) => {
     const matchesSearch =
@@ -207,9 +300,19 @@ export function EventsView({ events: initialEvents, subClubs }: EventsViewProps)
                       <span className="truncate">{evt.location}</span>
                     </div>
                   )}
-                  <div className="flex items-center gap-2">
-                    <Users className="w-3.5 h-3.5 text-[#5B50E5]" />
-                    <span>{evt.participantsCount} Registered Participants</span>
+                  <div className="flex items-center justify-between pt-1">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-3.5 h-3.5 text-[#5B50E5]" />
+                      <span>{evt.participantsCount} Registered</span>
+                    </div>
+                    <button
+                      onClick={() => openParticipantsModal(evt)}
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[#5B50E5]/30 bg-[#5B50E5]/5 text-[#5B50E5] text-[11px] font-bold hover:bg-[#5B50E5]/10 transition-colors"
+                      title="Select participants from your sub-club for this event"
+                    >
+                      <UserCheck className="w-3.5 h-3.5" />
+                      <span>Select Members</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -331,6 +434,131 @@ export function EventsView({ events: initialEvents, subClubs }: EventsViewProps)
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Participant Selection Modal */}
+      {participantsModalOpen && activeEventForParticipants && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-2xl rounded-3xl border border-border bg-white shadow-2xl flex flex-col max-h-[85vh] overflow-hidden relative">
+            {/* Header */}
+            <div className="px-6 py-5 border-b border-border/70 flex items-start justify-between gap-4">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#5B50E5]/10 text-[#5B50E5] text-[10px] font-bold uppercase tracking-wider mb-1.5">
+                  <UserCheck className="w-3 h-3" />
+                  <span>Participant Selection</span>
+                </div>
+                <h3 className="text-lg font-bold text-foreground">
+                  {activeEventForParticipants.title}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Select sub-club members participating in this event. These members will be populated on official On-Duty (OD) forms.
+                </p>
+              </div>
+              <button
+                onClick={() => setParticipantsModalOpen(false)}
+                className="p-1.5 rounded-full hover:bg-muted text-muted-foreground"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Controls */}
+            <div className="px-6 py-3 border-b border-border/40 bg-muted/20 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="relative w-full sm:w-64">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={participantSearch}
+                  onChange={(e) => setParticipantSearch(e.target.value)}
+                  placeholder="Search name, VM, reg no..."
+                  className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl border border-border bg-white outline-none focus:border-[#5B50E5]"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                <span className="text-xs font-semibold text-muted-foreground">
+                  <span className="text-[#5B50E5] font-bold">{selectedParticipantIds.size}</span> Selected
+                </span>
+                <button
+                  onClick={toggleSelectAll}
+                  className="text-xs font-semibold text-[#5B50E5] hover:underline px-2 py-1"
+                >
+                  {selectedParticipantIds.size === filteredParticipants.length && filteredParticipants.length > 0
+                    ? "Deselect All"
+                    : "Select All"}
+                </button>
+              </div>
+            </div>
+
+            {/* List */}
+            <div className="flex-1 overflow-y-auto p-6 divide-y divide-border/40">
+              {isLoadingParticipants ? (
+                <div className="py-16 text-center text-muted-foreground space-y-2">
+                  <Loader2 className="w-6 h-6 animate-spin mx-auto text-[#5B50E5]" />
+                  <p className="text-xs">Loading members...</p>
+                </div>
+              ) : filteredParticipants.length === 0 ? (
+                <div className="py-16 text-center text-muted-foreground text-xs">
+                  No active members found in your sub-club.
+                </div>
+              ) : (
+                filteredParticipants.map((p) => {
+                  const isChecked = selectedParticipantIds.has(p.id);
+                  return (
+                    <label
+                      key={p.id}
+                      className={`py-3 px-3 flex items-center justify-between gap-3 rounded-xl cursor-pointer transition-colors ${
+                        isChecked ? "bg-[#5B50E5]/5" : "hover:bg-muted/30"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => toggleParticipant(p.id)}
+                          className="w-4 h-4 rounded border-border text-[#5B50E5] focus:ring-[#5B50E5] cursor-pointer"
+                        />
+                        <div>
+                          <div className="text-xs font-bold text-foreground">{p.name}</div>
+                          <div className="text-[11px] text-muted-foreground font-mono">
+                            {p.vmNumber} • {p.registerNumber} • {p.department} ({p.year})
+                          </div>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                        {p.subClubName}
+                      </span>
+                    </label>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-border/70 flex items-center justify-between bg-muted/10">
+              <button
+                onClick={() => setParticipantsModalOpen(false)}
+                className="px-4 py-2 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:bg-muted"
+              >
+                Cancel
+              </button>
+              <Button
+                onClick={handleSaveParticipants}
+                disabled={isSavingParticipants}
+                className="px-5 py-2 rounded-xl bg-[#5B50E5] text-white text-xs font-bold hover:bg-[#4C40D4]"
+              >
+                {isSavingParticipants ? (
+                  <div className="flex items-center gap-1.5">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Saving...</span>
+                  </div>
+                ) : (
+                  `Save ${selectedParticipantIds.size} Participants`
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       )}
